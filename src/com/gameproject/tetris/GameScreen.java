@@ -9,7 +9,7 @@ public class GameScreen extends JPanel implements GameStage{
     GameScreen(GameFrame _mainGame) {
         mainGame = _mainGame;
         this.setPreferredSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT));
-        this.setBackground(Color.BLACK);
+        this.setBackground(Color.decode("#311a30"));
         this.setFocusable(true);
         this.startGame();
     }
@@ -35,6 +35,10 @@ public class GameScreen extends JPanel implements GameStage{
 
     @Override
     public void keyPressed(String key) {
+        switch (key){
+            case "BACKSPACE":
+                break;
 
+        }
     }
 }

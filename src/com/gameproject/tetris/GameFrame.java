@@ -14,7 +14,7 @@ class DirNode {
     private String nodeName;
     private DirNode parent;
     private boolean root;
-    ArrayList<DirNode> children;
+    private ArrayList<DirNode> children;
     DirNode(String _name){
         nodeName = _name;
         parent = null;
@@ -37,12 +37,16 @@ class DirNode {
         return this.nodeName;
     }
 
-    DirNode getParent(){
+    public DirNode getParent(){
         return this.parent;
     }
 
-    boolean isRoot(){
+    public boolean isRoot(){
         return this.root;
+    }
+
+    public ArrayList<DirNode> getChildren(){
+        return this.children;
     }
 }
 
@@ -50,11 +54,19 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
     public class MyKeyAdapter extends KeyAdapter {
         GameFrame mainGame;
         MyKeyAdapter(GameFrame _mainGame) {
+            super();
             mainGame = _mainGame;
         }
         @Override
         public void keyPressed(KeyEvent e){
-            mainGame.keyPressed("key is pressed");
+            switch (e.getKeyCode()){
+                case KeyEvent.VK_UP:
+                    mainGame.keyPressed("UP");
+                    break;
+                case KeyEvent.VK_DOWN:
+                    mainGame.keyPressed("DOWN");
+                    break;
+            }
         }
     }
 
@@ -67,18 +79,23 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
     GameScreen gameStage;       //Temporary
 
     GameFrame(){
-        this.createDirectoryTree();
+        this.createDirectories();
         this.setTitle("Tetris");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);
+        this.setFocusable(true);
         this.currDir = rootDir;
+        this.currentStage = gameStages.get(currDir.toString());
         //Temporary part begins
+        /*
         gameStage = new GameScreen(this);
         JPanel gamePanel = gameStage;
         currentStage = gameStage;
+        */
         //Temporary part ends
-        this.add(gamePanel);
+        this.add(gamePanels.get(currDir.toString()));
         this.setSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT));
+        this.setLocationRelativeTo(null);
         this.setVisible(true);
         this.addKeyListener(new MyKeyAdapter(this));
         running = true;
@@ -86,9 +103,19 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
         timer.start();
     }
 
-    void createDirectoryTree(){
+    void createDirectories(){
+        gameStages = new HashMap<>();
+        gamePanels = new HashMap<>();
+
         rootDir = new DirNode("MainMenu");
-        currDir = rootDir.addChild("GameScreen");
+        MainMenu mainMenu = new MainMenu(this);
+        gameStages.put("MainMenu", mainMenu);
+        gamePanels.put("MainMenu", mainMenu);
+
+        rootDir.addChild("GameScreen");
+        GameScreen gameScreen = new GameScreen(this);
+        gameStages.put("GameScreen", gameScreen);
+        gamePanels.put("GameScreen", gameScreen);
 
     }
 
@@ -99,7 +126,7 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
 
     @Override
     public void keyPressed(String key) {
-        System.out.println(key);
+        currentStage.keyPressed(key);
     }
 
     @Override
