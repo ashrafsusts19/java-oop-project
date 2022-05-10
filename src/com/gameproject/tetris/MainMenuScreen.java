@@ -5,12 +5,12 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class MainMenu extends JPanel implements GameStage{
+public class MainMenuScreen extends JPanel implements GameStage{
     GameFrame mainGame;
     Font optionFont, titleFont;
     ArrayList<String> options;
     int cursorPosition;
-    MainMenu(GameFrame _mainGame) {
+    MainMenuScreen(GameFrame _mainGame) {
         mainGame = _mainGame;
         optionFont = new Font(null, Font.BOLD, 40);
         titleFont = new Font(null, Font.BOLD, 60);
@@ -18,7 +18,7 @@ public class MainMenu extends JPanel implements GameStage{
         this.setupOptions();
 
         this.setPreferredSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT));
-        this.setBackground(Color.decode("#464780"));
+        this.setBackground(Color.decode("#311a30"));
         this.setFocusable(true);
     }
 
@@ -33,9 +33,9 @@ public class MainMenu extends JPanel implements GameStage{
     }
 
     private void draw(Graphics g){
-        this.drawCenteredText(g, "TeTrIS", titleFont, Color.decode("#303030"), 250, 150);
+        this.drawCenteredText(g, "TeTrIS", titleFont, Color.decode("#c2c2d1"), 250, 150);
         for (int i = 0; i < options.size(); i++){
-            this.drawCenteredText(g, options.get(i), optionFont, Color.decode("#7a7fc5"),
+            this.drawCenteredText(g, options.get(i), optionFont, Color.decode("#bd4882"),
                     250, 250 + i * 60);
         }
         this.highlightCursor(g);
@@ -48,16 +48,20 @@ public class MainMenu extends JPanel implements GameStage{
         g.setFont(font);
         g.setColor(color);
         g.drawString(text, x, y);
+
     }
 
     private void highlightCursor(Graphics g){
-        this.drawCenteredText(g, "=>", optionFont, Color.decode("#ba9880"), 100,
+        this.drawCenteredText(g, "=>", optionFont, Color.decode("#bd4882"), 100,
                 250 + cursorPosition * 60);
+        FontMetrics metrics = g.getFontMetrics(optionFont);
+
     }
 
     @Override
     public void gameLoop() {
         this.repaint();
+
     }
 
     @Override
@@ -69,6 +73,17 @@ public class MainMenu extends JPanel implements GameStage{
             case "DOWN":
                 cursorPosition = (cursorPosition + 1) % options.size();
                 break;
+            case "ENTER":
+                switch (this.options.get(this.cursorPosition)) {
+                    case "Start":
+                        mainGame.initializeGame();
+                        mainGame.setDirectory("GameScreen");
+                        break;
+                    case "Quit":
+                        break;
+                }
+                break;
+
         }
     }
 }

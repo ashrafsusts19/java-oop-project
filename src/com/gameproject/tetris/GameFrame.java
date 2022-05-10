@@ -32,12 +32,22 @@ class DirNode {
         children.add(new DirNode(childName, this));
         return children.get(children.size() - 1);
     }
+
+    public DirNode getChildByName(String childName){
+        for (int i = 0; i < this.children.size(); i++){
+            if (children.get(i).toString() == childName){
+                return children.get(i);
+            }
+        }
+        return null;
+    }
     @Override
     public String toString() {
         return this.nodeName;
     }
 
     public DirNode getParent(){
+        if (root) return null;
         return this.parent;
     }
 
@@ -66,6 +76,12 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
                 case KeyEvent.VK_DOWN:
                     mainGame.keyPressed("DOWN");
                     break;
+                case KeyEvent.VK_ENTER:
+                    mainGame.keyPressed("ENTER");
+                    break;
+                case KeyEvent.VK_ESCAPE:
+                    mainGame.keyPressed("ESCAPE");
+                    break;
             }
         }
     }
@@ -76,7 +92,7 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
     HashMap<String, JPanel> gamePanels;
     GameStage currentStage;
     DirNode rootDir, currDir;
-    GameScreen gameStage;       //Temporary
+    //GameScreen gameStage;       //Temporary
 
     GameFrame(){
         this.createDirectories();
@@ -103,20 +119,47 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
         timer.start();
     }
 
-    void createDirectories(){
+    private void createDirectories(){
         gameStages = new HashMap<>();
         gamePanels = new HashMap<>();
 
         rootDir = new DirNode("MainMenu");
-        MainMenu mainMenu = new MainMenu(this);
-        gameStages.put("MainMenu", mainMenu);
-        gamePanels.put("MainMenu", mainMenu);
+        MainMenuScreen mainMenuScreen = new MainMenuScreen(this);
+        gameStages.put("MainMenu", mainMenuScreen);
+        gamePanels.put("MainMenu", mainMenuScreen);
 
         rootDir.addChild("GameScreen");
+        gameStages.put("GameScreen", null);
+        gamePanels.put("GameScreen", null);
+
+    }
+
+    public void goPreviousDir(){
+        DirNode nextDir = currDir.getParent();
+        if (nextDir == null) return;
+        this.getContentPane().remove(gamePanels.get(currDir.toString()));
+        this.add(gamePanels.get(nextDir.toString()));
+        currDir = nextDir;
+        currentStage = gameStages.get(currDir.toString());
+        this.getContentPane().invalidate();
+        this.getContentPane().validate();
+    }
+
+    public void initializeGame(){
         GameScreen gameScreen = new GameScreen(this);
         gameStages.put("GameScreen", gameScreen);
         gamePanels.put("GameScreen", gameScreen);
+    }
 
+    public void setDirectory(String dirName){
+         DirNode nextDir = currDir.getChildByName(dirName);
+         if (nextDir == null) return;
+         this.getContentPane().remove(gamePanels.get(currDir.toString()));
+         this.add(gamePanels.get(nextDir.toString()));
+         currDir = nextDir;
+         currentStage = gameStages.get(currDir.toString());
+         this.getContentPane().invalidate();
+         this.getContentPane().validate();
     }
 
     @Override
@@ -126,6 +169,10 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
 
     @Override
     public void keyPressed(String key) {
+        if (key == "ESCAPE"){
+            this.goPreviousDir();
+            return;
+        }
         currentStage.keyPressed(key);
     }
 
