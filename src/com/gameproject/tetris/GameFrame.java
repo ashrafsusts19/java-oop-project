@@ -76,11 +76,20 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
                 case KeyEvent.VK_DOWN:
                     mainGame.keyPressed("DOWN");
                     break;
+                case KeyEvent.VK_LEFT:
+                    mainGame.keyPressed("LEFT");
+                    break;
+                case KeyEvent.VK_RIGHT:
+                    mainGame.keyPressed("RIGHT");
+                    break;
                 case KeyEvent.VK_ENTER:
                     mainGame.keyPressed("ENTER");
                     break;
                 case KeyEvent.VK_ESCAPE:
                     mainGame.keyPressed("ESCAPE");
+                    break;
+                case KeyEvent.VK_SPACE:
+                    mainGame.keyPressed("SPACE");
                     break;
             }
         }

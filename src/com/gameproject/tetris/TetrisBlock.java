@@ -21,9 +21,10 @@ public class TetrisBlock {
     public ArrayList<Pair> blockIndices;
     public int blockStates;
     public int maxLen = 0;
+
     TetrisBlock(ArrayList<Pair> _blockIndices){
         blockIndices = (ArrayList) _blockIndices.clone();
-        this.findStates();
+        findStates();
         for (Pair blockIndex: blockIndices){
             maxLen = max(maxLen, max(abs(blockIndex.y), abs(blockIndex.x)));
         }
@@ -87,6 +88,5 @@ public class TetrisBlock {
             }
         }
     }
-
 }
 

@@ -2,6 +2,7 @@ package com.gameproject.tetris;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -18,6 +19,7 @@ public class GameScreen extends JPanel implements GameStage{
         int blockStates;
         int maxLen;
         int currState = 1;
+        int xLeft, xRight, yTop, yBot;
 
         IngameBlock(TetrisBlock blockData){
             blockIndices = new ArrayList<>();
@@ -30,6 +32,20 @@ public class GameScreen extends JPanel implements GameStage{
             y = -miny;
             blockStates = blockData.blockStates;
             maxLen = blockData.maxLen;
+            this.defineShape();
+        }
+
+        public void defineShape(){
+            xLeft = 99999;
+            xRight = -99999;
+            yTop = 99999;
+            yBot = -99999;
+            for (Pair index: blockIndices){
+                if (index.x < xLeft) xLeft = index.x;
+                if (index.x > xRight) xRight = index.x;
+                if (index.y < yTop) yTop = index.y;
+                if (index.y > yBot) yBot = index.y;
+            }
         }
 
         public void drawBLock(Graphics g){
@@ -55,10 +71,11 @@ public class GameScreen extends JPanel implements GameStage{
             for (Pair index: this.blockIndices){
                 gridMap[this.y + index.y][this.x + index.x] = true;
             }
+            postBlockPlacement();
         }
 
         private boolean moveAvailable(int cx, int cy, ArrayList<Pair> blockShape) {
-            if (cy >= gmScreen.rows || cx >= gmScreen.cols) return false;
+            if (cy >= gmScreen.rows || cy < 0 || cx >= gmScreen.cols || cx < 0) return false;
             for (Pair index: blockShape){
                 if (cy + index.y >= gmScreen.rows || cy + index.y < 0) return false;
                 else if (cx + index.x >= gmScreen.cols || cx + index.x < 0) return false;
@@ -67,7 +84,21 @@ public class GameScreen extends JPanel implements GameStage{
             return true;
         }
 
-        private Pair alternateRotate(ArrayList<Pair> rotatedShape){
+        private Pair offsetedPosition(ArrayList<Pair> rotatedShape){
+            if (this.moveAvailable(this.x, this.y, rotatedShape)) return new Pair(this.x, this.y);
+            for (int dxy = 1; dxy <= this.maxLen; dxy++){
+                if (dxy == 0) continue;
+                for (Pair index: new Pair[]{
+                        new Pair(dxy, 0),
+                        new Pair(0, dxy),
+                        new Pair(-dxy, 0),
+                        new Pair(0, -dxy)})
+                {
+                    if (this.moveAvailable(this.x + index.x, this.y + index.y, rotatedShape)){
+                        return new Pair(this.x + index.x, this.y + index.y);
+                    }
+                }
+            }
             return new Pair(-1, -1);
         }
 
@@ -93,29 +124,41 @@ public class GameScreen extends JPanel implements GameStage{
             if (this.moveAvailable(this.x, this.y, rotatedShape)){
                 this.blockIndices = rotatedShape;
                 this.currState = (this.currState % this.blockStates) + 1;
+                this.defineShape();
             }
             else {
-                Pair alternateLoc = alternateRotate(rotatedShape);
+                Pair alternateLoc = offsetedPosition(rotatedShape);
                 if (alternateLoc.x != -1){
                     this.x = alternateLoc.x;
                     this.y = alternateLoc.y;
                     this.blockIndices = rotatedShape;
                     this.currState = (this.currState % this.blockStates) + 1;
+                    this.defineShape();
                 }
             }
         }
 
-        private int projectY(){
-            return gridMap.length - 1;
+        private int projectYPosition(){
+            for (int yLoc = this.y; yLoc < ROWS; yLoc++){
+                if (!this.moveAvailable(this.x, yLoc, this.blockIndices)){
+                    return yLoc - 1;
+                }
+            }
+            return ROWS - 1;
         }
 
         public void drawProjection(Graphics g){
+            int yPosition = projectYPosition();
             g.setColor(Color.decode("#6200e3"));
+            for (Pair index: blockIndices){
+                g.drawRect((this.x + index.x)* GRIDW, (yPosition + index.y) * GRIDH, GRIDW, GRIDH);
+            }
 
         }
 
         public void smackDown(){
-
+            this.y = projectYPosition();
+            this.place();
         }
     }
 
@@ -137,6 +180,13 @@ public class GameScreen extends JPanel implements GameStage{
         public void draw(Graphics g){
             blockQueue[0].drawBLock(g);
             blockQueue[0].drawProjection(g);
+            for (int i = 0; i < rows; i++){
+                for (int j = 0; j < cols; j++){
+                    if (gridMap[i][j]){
+                        g.fillRect(j * GRIDW + 1, i * GRIDH + 1, GRIDW - 2, GRIDH - 2);
+                    }
+                }
+            }
         }
     }
 
@@ -144,6 +194,7 @@ public class GameScreen extends JPanel implements GameStage{
     int timer;
     boolean isGameover;
     Font font = new Font(null, Font.PLAIN, 20);
+
     boolean[][] gridMap;
     GameFrame mainGame;
     GameMiniScreen gmScreen;
@@ -205,7 +256,38 @@ public class GameScreen extends JPanel implements GameStage{
     }
 
     public void postBlockPlacement() {
+        timer = 0;
+        blockQueue[0] = blockQueue[1];
+        Random rand = new Random();
+        blockQueue[1] = new IngameBlock(chosenBlocks.get(rand.nextInt(chosenBlocks.size())));
+        if (!blockQueue[0].moveAvailable(blockQueue[0].x, blockQueue[0].y, blockQueue[0].blockIndices)){
+            isGameover = true;
+        }
+        this.updateScore();
+    }
 
+    public void updateScore()
+    {
+        int totalClears = 0;
+        for (int i = 0; i < ROWS; i++){
+            boolean flag = true;
+            for (int j = 0; j < COLS; j++){
+                flag &= gridMap[i][j];
+            }
+            if (flag){
+                totalClears++;
+                for (int revIndex = i; revIndex > 0; revIndex--){
+                    gridMap[revIndex] = gridMap[revIndex - 1];
+                }
+            }
+            for (int j = 0; j < COLS; j++){
+                gridMap[0][j] = false;
+            }
+        }
+        if (totalClears > 0){
+            this.score += 40 * (Math.pow(3, totalClears - 1));
+            System.out.println(this.score);
+        }
     }
 
     public void paintComponent(Graphics g){
@@ -223,7 +305,10 @@ public class GameScreen extends JPanel implements GameStage{
 
     @Override
     public void gameLoop() {
-        timer = (timer + 1) % 40;
+        timer = (timer + 1) % 35;
+        if (timer == 0 && !isGameover){
+            blockQueue[0].move(0, 1);
+        }
         this.gmScreen.repaint();
         this.repaint();
     }
@@ -231,7 +316,22 @@ public class GameScreen extends JPanel implements GameStage{
     @Override
     public void keyPressed(String key) {
         switch (key){
-
+            case "UP":
+                blockQueue[0].rotate();
+                break;
+            case "DOWN":
+                blockQueue[0].move(0, 1);
+                timer = 0;
+                break;
+            case "LEFT":
+                blockQueue[0].move(-1, 0);
+                break;
+            case "RIGHT":
+                blockQueue[0].move(1, 0);
+                break;
+            case "SPACE":
+                blockQueue[0].smackDown();
+                break;
         }
     }
 }
