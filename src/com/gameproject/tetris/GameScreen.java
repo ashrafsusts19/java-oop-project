@@ -280,6 +280,7 @@ public class GameScreen extends JPanel implements GameStage{
                     gridMap[revIndex] = gridMap[revIndex - 1];
                 }
             }
+            gridMap[0] = new boolean[COLS];
             for (int j = 0; j < COLS; j++){
                 gridMap[0][j] = false;
             }
