@@ -2,7 +2,6 @@ package com.gameproject.tetris;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -75,10 +74,10 @@ public class GameScreen extends JPanel implements GameStage{
         }
 
         private boolean moveAvailable(int cx, int cy, ArrayList<Pair> blockShape) {
-            if (cy >= gmScreen.rows || cy < 0 || cx >= gmScreen.cols || cx < 0) return false;
+            if (cy >= ROWS || cy < 0 || cx >= COLS || cx < 0) return false;
             for (Pair index: blockShape){
-                if (cy + index.y >= gmScreen.rows || cy + index.y < 0) return false;
-                else if (cx + index.x >= gmScreen.cols || cx + index.x < 0) return false;
+                if (cy + index.y >= ROWS || cy + index.y < 0) return false;
+                else if (cx + index.x >= COLS || cx + index.x < 0) return false;
                 else if (gridMap[cy + index.y][cx + index.x]) return false;
             }
             return true;
@@ -163,13 +162,10 @@ public class GameScreen extends JPanel implements GameStage{
     }
 
     class GameMiniScreen extends JPanel{
-        public int rows, cols;
-        GameMiniScreen(int x, int y, int _rows, int _cols){
-            rows = _rows;
-            cols = _cols;
+        GameMiniScreen(int x, int y){
             this.setBackground(Color.decode("#190025"));
             this.setFocusable(true);
-            this.setBounds(x, y, cols * GRIDW, rows * GRIDH);
+            this.setBounds(x, y, COLS * GRIDW, ROWS * GRIDH);
         }
 
         public void paintComponent(Graphics g){
@@ -180,8 +176,9 @@ public class GameScreen extends JPanel implements GameStage{
         public void draw(Graphics g){
             blockQueue[0].drawBLock(g);
             blockQueue[0].drawProjection(g);
-            for (int i = 0; i < rows; i++){
-                for (int j = 0; j < cols; j++){
+            g.setColor(Color.decode("#6200e3"));
+            for (int i = 0; i < ROWS; i++){
+                for (int j = 0; j < COLS; j++){
                     if (gridMap[i][j]){
                         g.fillRect(j * GRIDW + 1, i * GRIDH + 1, GRIDW - 2, GRIDH - 2);
                     }
@@ -190,14 +187,65 @@ public class GameScreen extends JPanel implements GameStage{
         }
     }
 
+    class NextBlockMiniScreen extends JPanel{
+        private int rows, cols;
+        int centerX, centerY;
+        NextBlockMiniScreen(int x, int y, int _rows, int _cols){
+            rows = _rows;
+            cols = _cols;
+            this.setBackground(Color.decode("#190025"));
+            centerX = cols / 2;
+            centerY = rows / 2;
+            this.setFocusable(true);
+            this.setBounds(x, y, this.cols * GRIDW, this.rows * GRIDH);
+        }
+
+        public void paintComponent(Graphics g){
+            super.paintComponent(g);
+            this.draw(g);
+        }
+
+        public void draw(Graphics g){
+            g.setColor(Color.decode("#6200e3"));
+            for (Pair index: blockQueue[1].blockIndices){
+                g.fillRect((centerX + index.x) * GRIDW + 1, (centerY + index.y) * GRIDH + 1,
+                        GRIDW - 2, GRIDH - 2);
+            }
+        }
+    }
+
+    class StatsMiniScreen extends JPanel{
+        private int centerX, centerY;
+        private Font defaultFont = new Font(null, Font.PLAIN, 20);
+        StatsMiniScreen(int x, int y, int width, int height) {
+            centerX = width / 2;
+            centerY = height / 2;
+            this.setBackground(Color.decode("#190025"));
+            this.setFocusable(true);
+            this.setBounds(x, y, width, height);
+        }
+        public void paintComponent(Graphics g){
+            super.paintComponent(g);
+            this.draw(g);
+        }
+
+        public void draw(Graphics g){
+            drawCenteredText(g, "Score: " + score, defaultFont, Color.decode("#c2c2d1"),
+                    centerX, centerY + defaultFont.getSize());
+        }
+
+    }
+
     int score;
     int timer;
     boolean isGameover;
-    Font font = new Font(null, Font.PLAIN, 20);
+    Font defaultFont = new Font(null, Font.PLAIN, 20);
 
     boolean[][] gridMap;
     GameFrame mainGame;
     GameMiniScreen gmScreen;
+    NextBlockMiniScreen nextScreen;
+    StatsMiniScreen statsScreen;
     IngameBlock[] blockQueue = new IngameBlock[2];
     ArrayList<TetrisBlock> chosenBlocks;
 
@@ -205,8 +253,12 @@ public class GameScreen extends JPanel implements GameStage{
         mainGame = _mainGame;
         this.setLayout(null);
         this.setSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT));
-        this.gmScreen = new GameMiniScreen(50 + (400 - COLS * 20) / 2, 50, ROWS, COLS);
-        this.add(gmScreen);
+        this.gmScreen = new GameMiniScreen(50 + (400 - COLS * 20) / 2, 50);
+        this.add(this.gmScreen);
+        this.nextScreen = new NextBlockMiniScreen(50, 500, 5, 5);
+        this.add(this.nextScreen);
+        this.statsScreen = new StatsMiniScreen(300, 500, 150, 100);
+        this.add(this.statsScreen);
         this.setBackground(Color.decode("#311a30"));
         this.setFocusable(true);
         this.setupBLocks();
@@ -262,8 +314,13 @@ public class GameScreen extends JPanel implements GameStage{
         blockQueue[1] = new IngameBlock(chosenBlocks.get(rand.nextInt(chosenBlocks.size())));
         if (!blockQueue[0].moveAvailable(blockQueue[0].x, blockQueue[0].y, blockQueue[0].blockIndices)){
             isGameover = true;
+            this.callGameOver();
         }
         this.updateScore();
+    }
+
+    public void callGameOver() {
+
     }
 
     public void updateScore()
@@ -287,8 +344,18 @@ public class GameScreen extends JPanel implements GameStage{
         }
         if (totalClears > 0){
             this.score += 40 * (Math.pow(3, totalClears - 1));
-            System.out.println(this.score);
+            //System.out.println(this.score);
         }
+    }
+
+    public void drawCenteredText(Graphics g, String text, Font font, Color color, int x, int y){
+        FontMetrics metrics = g.getFontMetrics(font);
+        x = x - metrics.stringWidth(text) / 2;
+        y = y - metrics.getHeight() / 2;
+        g.setFont(font);
+        g.setColor(color);
+        g.drawString(text, x, y);
+
     }
 
     public void paintComponent(Graphics g){
@@ -301,6 +368,11 @@ public class GameScreen extends JPanel implements GameStage{
         g.fillRect(50, 50, 400, 400);
         g.setColor(Color.decode("#141414"));
         g.drawRect(49, 49, 402, 402);
+        //g.drawRect(49, 499, 102, 102);
+        if (isGameover){
+            this.drawCenteredText(g, "Game Over, press Space to restart", defaultFont,
+                    Color.decode("#c2c2d1"), SCREEN_WIDTH / 2, 470 + defaultFont.getSize());
+        }
         gmScreen.repaint();
     }
 
@@ -331,7 +403,8 @@ public class GameScreen extends JPanel implements GameStage{
                 blockQueue[0].move(1, 0);
                 break;
             case "SPACE":
-                blockQueue[0].smackDown();
+                if (!isGameover) blockQueue[0].smackDown();
+                else this.startGame();
                 break;
         }
     }

@@ -35,7 +35,7 @@ public class MainMenuScreen extends JPanel implements GameStage{
     private void draw(Graphics g){
         this.drawCenteredText(g, "TeTrIS", titleFont, Color.decode("#c2c2d1"), 250, 150);
         for (int i = 0; i < options.size(); i++){
-            this.drawCenteredText(g, options.get(i), optionFont, Color.decode("#bd4882"),
+            this.drawCenteredText(g, options.get(i), optionFont, Color.decode("#3e2347"),
                     250, 250 + i * 60);
         }
         this.highlightCursor(g);
@@ -52,7 +52,7 @@ public class MainMenuScreen extends JPanel implements GameStage{
     }
 
     private void highlightCursor(Graphics g){
-        this.drawCenteredText(g, "=>", optionFont, Color.decode("#bd4882"), 100,
+        this.drawCenteredText(g, "=>", optionFont, Color.decode("#3e2347"), 100,
                 250 + cursorPosition * 60);
         FontMetrics metrics = g.getFontMetrics(optionFont);
 
