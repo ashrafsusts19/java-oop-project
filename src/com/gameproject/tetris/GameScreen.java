@@ -48,7 +48,7 @@ public class GameScreen extends JPanel implements GameStage{
         }
 
         public void drawBLock(Graphics g){
-            g.setColor(Color.decode("#4a00a4"));
+            g.setColor(Color.decode("#f6d6bd"));
             for (Pair index: blockIndices){
                 g.fillRect((x + index.x) * GRIDW + 1, (y + index.y) * GRIDH + 1, GRIDW - 2, GRIDH - 2);
             }
@@ -148,7 +148,7 @@ public class GameScreen extends JPanel implements GameStage{
 
         public void drawProjection(Graphics g){
             int yPosition = projectYPosition();
-            g.setColor(Color.decode("#6200e3"));
+            g.setColor(Color.decode("#f6d6bd"));
             for (Pair index: blockIndices){
                 g.drawRect((this.x + index.x)* GRIDW, (yPosition + index.y) * GRIDH, GRIDW, GRIDH);
             }
@@ -163,7 +163,7 @@ public class GameScreen extends JPanel implements GameStage{
 
     class GameMiniScreen extends JPanel{
         GameMiniScreen(int x, int y){
-            this.setBackground(Color.decode("#190025"));
+            this.setBackground(Color.decode("#816271"));
             this.setFocusable(true);
             this.setBounds(x, y, COLS * GRIDW, ROWS * GRIDH);
         }
@@ -176,7 +176,7 @@ public class GameScreen extends JPanel implements GameStage{
         public void draw(Graphics g){
             blockQueue[0].drawBLock(g);
             blockQueue[0].drawProjection(g);
-            g.setColor(Color.decode("#6200e3"));
+            g.setColor(Color.decode("#c3a38a"));
             for (int i = 0; i < ROWS; i++){
                 for (int j = 0; j < COLS; j++){
                     if (gridMap[i][j]){
@@ -193,7 +193,7 @@ public class GameScreen extends JPanel implements GameStage{
         NextBlockMiniScreen(int x, int y, int _rows, int _cols){
             rows = _rows;
             cols = _cols;
-            this.setBackground(Color.decode("#190025"));
+            this.setBackground(Color.decode("#0f2a3f"));
             centerX = cols / 2;
             centerY = rows / 2;
             this.setFocusable(true);
@@ -206,7 +206,7 @@ public class GameScreen extends JPanel implements GameStage{
         }
 
         public void draw(Graphics g){
-            g.setColor(Color.decode("#6200e3"));
+            g.setColor(Color.decode("#c3a38a"));
             for (Pair index: blockQueue[1].blockIndices){
                 g.fillRect((centerX + index.x) * GRIDW + 1, (centerY + index.y) * GRIDH + 1,
                         GRIDW - 2, GRIDH - 2);
@@ -220,7 +220,7 @@ public class GameScreen extends JPanel implements GameStage{
         StatsMiniScreen(int x, int y, int width, int height) {
             centerX = width / 2;
             centerY = height / 2;
-            this.setBackground(Color.decode("#190025"));
+            this.setBackground(Color.decode("#0f2a3f"));
             this.setFocusable(true);
             this.setBounds(x, y, width, height);
         }
@@ -230,7 +230,7 @@ public class GameScreen extends JPanel implements GameStage{
         }
 
         public void draw(Graphics g){
-            drawCenteredText(g, "Score: " + score, defaultFont, Color.decode("#c2c2d1"),
+            drawCenteredText(g, "Score: " + score, defaultFont, Color.decode("#c3a38a"),
                     centerX, centerY + defaultFont.getSize());
         }
 
@@ -259,7 +259,7 @@ public class GameScreen extends JPanel implements GameStage{
         this.add(this.nextScreen);
         this.statsScreen = new StatsMiniScreen(300, 500, 150, 100);
         this.add(this.statsScreen);
-        this.setBackground(Color.decode("#311a30"));
+        this.setBackground(Color.decode("#20394f"));
         this.setFocusable(true);
         this.setupBLocks();
         this.startGame();
@@ -364,9 +364,9 @@ public class GameScreen extends JPanel implements GameStage{
     }
 
     private void draw(Graphics g){
-        g.setColor(Color.decode("#3e2347"));
+        g.setColor(Color.decode("#4e495f"));
         g.fillRect(50, 50, 400, 400);
-        g.setColor(Color.decode("#141414"));
+        g.setColor(Color.decode("#0f2a3f"));
         g.drawRect(49, 49, 402, 402);
         //g.drawRect(49, 499, 102, 102);
         if (isGameover){
