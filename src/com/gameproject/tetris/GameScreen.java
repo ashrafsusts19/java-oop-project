@@ -74,7 +74,6 @@ public class GameScreen extends JPanel implements GameStage{
         }
 
         private boolean moveAvailable(int cx, int cy, ArrayList<Pair> blockShape) {
-            if (cy >= ROWS || cy < 0 || cx >= COLS || cx < 0) return false;
             for (Pair index: blockShape){
                 if (cy + index.y >= ROWS || cy + index.y < 0) return false;
                 else if (cx + index.x >= COLS || cx + index.x < 0) return false;
@@ -305,6 +304,7 @@ public class GameScreen extends JPanel implements GameStage{
         blockIndices = new ArrayList<>(Arrays.asList(new Pair(0, 0), new Pair(-1, -1),
                 new Pair(0, -1), new Pair(1, 0)));
         chosenBlocks.add(new TetrisBlock(blockIndices));
+
     }
 
     public void postBlockPlacement() {
