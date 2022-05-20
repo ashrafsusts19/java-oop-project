@@ -163,6 +163,7 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
     public void setDirectory(String dirName){
          DirNode nextDir = currDir.getChildByName(dirName);
          if (nextDir == null) return;
+         else if (gameStages.get(nextDir.toString()) == null || gamePanels.get(nextDir.toString()) == null) return;
          this.getContentPane().remove(gamePanels.get(currDir.toString()));
          this.add(gamePanels.get(nextDir.toString()));
          currDir = nextDir;
