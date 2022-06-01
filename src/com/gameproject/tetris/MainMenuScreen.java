@@ -24,7 +24,7 @@ public class MainMenuScreen extends JPanel implements GameStage{
 
     private void setupOptions(){
         options = new ArrayList<>();
-        Collections.addAll(options, "Start", "Quit");
+        Collections.addAll(options, "Start", "Records", "Settings", "Quit");
     }
 
     public void paintComponent(Graphics g){
@@ -84,6 +84,12 @@ public class MainMenuScreen extends JPanel implements GameStage{
                     case "Start":
                         mainGame.initializeGame();
                         mainGame.setDirectory("GameScreen");
+                        break;
+                    case "Records":
+                        mainGame.setDirectory("RecordScreen");
+                        break;
+                    case "Settings":
+                        mainGame.setDirectory("SettingsScreen");
                         break;
                     case "Quit":
                         break;

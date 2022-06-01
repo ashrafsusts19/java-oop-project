@@ -141,6 +141,15 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
         gameStages.put("GameScreen", null);
         gamePanels.put("GameScreen", null);
 
+        rootDir.addChild("RecordScreen");
+        RecordsScreen recordsScreen = new RecordsScreen(this);
+        gameStages.put("RecordScreen", recordsScreen);
+        gamePanels.put("RecordScreen", recordsScreen);
+
+        rootDir.addChild("SettingsScreen");
+        SettingsScreen settingsScreen = new SettingsScreen(this);
+        gameStages.put("SettingsScreen", settingsScreen);
+        gamePanels.put("SettingsScreen", settingsScreen);
     }
 
     public void goPreviousDir(){
