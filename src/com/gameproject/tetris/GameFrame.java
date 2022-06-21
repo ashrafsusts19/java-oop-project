@@ -150,6 +150,11 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
         SettingsScreen settingsScreen = new SettingsScreen(this);
         gameStages.put("SettingsScreen", settingsScreen);
         gamePanels.put("SettingsScreen", settingsScreen);
+
+        DirNode dir = rootDir.addChild("CustomMenuScreen");
+        CustomMenuScreen customMenuScreen = new CustomMenuScreen(this);
+        gameStages.put("CustomMenuScreen", customMenuScreen);
+        gamePanels.put("CustomMenuScreen", customMenuScreen);
     }
 
     public void goPreviousDir(){

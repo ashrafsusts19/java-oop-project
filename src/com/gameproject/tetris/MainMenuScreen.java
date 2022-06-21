@@ -24,7 +24,7 @@ public class MainMenuScreen extends JPanel implements GameStage{
 
     private void setupOptions(){
         options = new ArrayList<>();
-        Collections.addAll(options, "Start", "Records", "Settings", "Quit");
+        Collections.addAll(options, "Start", "Custom", "Records", "Settings", "Quit");
     }
 
     public void paintComponent(Graphics g){
@@ -33,15 +33,15 @@ public class MainMenuScreen extends JPanel implements GameStage{
     }
 
     private void draw(Graphics g){
-        this.drawCenteredText(g, "TeTrIS", titleFont, Color.decode("#c2c2d1"), 250, 150);
+        this.drawCenteredText(g, "TeTrIS", titleFont, Color.decode("#c2c2d1"), 250, 100);
         for (int i = 0; i < options.size(); i++){
             if (i == cursorPosition) {
                 this.drawCenteredText(g, options.get(i), optionFont, Color.decode("#f6d6bd"),
-                        250, 250 + i * 60);
+                        250, 200 + i * 60);
             }
             else {
                 this.drawCenteredText(g, options.get(i), optionFont, Color.decode("#c3a38a"),
-                        250, 250 + i * 60);
+                        250, 200 + i * 60);
             }
         }
         this.highlightCursor(g);
@@ -53,13 +53,13 @@ public class MainMenuScreen extends JPanel implements GameStage{
         y = y - metrics.getHeight() / 2;
         g.setFont(font);
         g.setColor(color);
-        g.drawString(text, x, y);
+        g.drawString(text, x, y + metrics.getHeight());
 
     }
 
     private void highlightCursor(Graphics g){
         this.drawCenteredText(g, "=>", optionFont, Color.decode("#f6d6bd"), 100,
-                250 + cursorPosition * 60);
+                200 + cursorPosition * 60);
         FontMetrics metrics = g.getFontMetrics(optionFont);
 
     }
@@ -84,6 +84,9 @@ public class MainMenuScreen extends JPanel implements GameStage{
                     case "Start":
                         mainGame.initializeGame();
                         mainGame.setDirectory("GameScreen");
+                        break;
+                    case "Custom":
+                        mainGame.setDirectory("CustomMenuScreen");
                         break;
                     case "Records":
                         mainGame.setDirectory("RecordScreen");

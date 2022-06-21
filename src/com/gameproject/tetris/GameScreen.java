@@ -12,7 +12,7 @@ import static java.lang.Math.min;
 public class GameScreen extends JPanel implements GameStage{
     int GRIDW = 20, GRIDH = 20;
     int ROWS = 20, COLS = 10;
-    class IngameBlock {
+    private class IngameBlock {
         ArrayList<Pair> blockIndices;
         int x, y;
         int blockStates;
@@ -160,7 +160,7 @@ public class GameScreen extends JPanel implements GameStage{
         }
     }
 
-    class GameMiniScreen extends JPanel{
+    private class GameMiniScreen extends JPanel{
         GameMiniScreen(int x, int y){
             this.setBackground(Color.decode("#816271"));
             this.setFocusable(true);
@@ -186,7 +186,7 @@ public class GameScreen extends JPanel implements GameStage{
         }
     }
 
-    class NextBlockMiniScreen extends JPanel{
+    private class NextBlockMiniScreen extends JPanel{
         private int rows, cols;
         int centerX, centerY;
         NextBlockMiniScreen(int x, int y, int _rows, int _cols){
@@ -213,7 +213,7 @@ public class GameScreen extends JPanel implements GameStage{
         }
     }
 
-    class StatsMiniScreen extends JPanel{
+    private class StatsMiniScreen extends JPanel{
         private int centerX, centerY;
         private Font defaultFont = new Font(null, Font.PLAIN, 20);
         StatsMiniScreen(int x, int y, int width, int height) {
@@ -260,7 +260,7 @@ public class GameScreen extends JPanel implements GameStage{
         this.add(this.statsScreen);
         this.setBackground(Color.decode("#20394f"));
         this.setFocusable(true);
-        this.setupBLocks();
+        this.setupDefaultBLocks();
         this.startGame();
     }
 
@@ -274,7 +274,7 @@ public class GameScreen extends JPanel implements GameStage{
         blockQueue[1] = new IngameBlock(chosenBlocks.get(rand.nextInt(chosenBlocks.size())));
     }
 
-    private void setupBLocks(){
+    private void setupDefaultBLocks(){
         chosenBlocks = new ArrayList<>();
 
         ArrayList<Pair> blockIndices = new ArrayList<>(Arrays.asList(new Pair(0, 0), new Pair(-1, 0),
@@ -354,7 +354,7 @@ public class GameScreen extends JPanel implements GameStage{
         y = y - metrics.getHeight() / 2;
         g.setFont(font);
         g.setColor(color);
-        g.drawString(text, x, y);
+        g.drawString(text, x, y + metrics.getHeight());
 
     }
 
@@ -373,7 +373,7 @@ public class GameScreen extends JPanel implements GameStage{
             this.drawCenteredText(g, "Game Over, press Space to restart", defaultFont,
                     Color.decode("#c2c2d1"), SCREEN_WIDTH / 2, 470 + defaultFont.getSize());
         }
-        gmScreen.repaint();
+
     }
 
     @Override
@@ -382,7 +382,6 @@ public class GameScreen extends JPanel implements GameStage{
         if (timer == 0 && !isGameover){
             blockQueue[0].move(0, 1);
         }
-        this.gmScreen.repaint();
         this.repaint();
     }
 
