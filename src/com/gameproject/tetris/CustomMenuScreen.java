@@ -2,7 +2,6 @@ package com.gameproject.tetris;
 
 import javax.swing.*;
 import java.awt.*;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -71,20 +70,18 @@ public class CustomMenuScreen extends JPanel implements GameStage {
         }
 
         public void draw(Graphics g){
+            if (cursorFocus == 0){
+                g.setColor(Color.decode("#997577"));
+            }
+            else {
+                g.setColor(Color.decode("#4e495f"));
+            }
+            g.fillRect(0, (this.cursorPosition - this.startingPosition) * 30, this.getWidth(), 30);
+            g.setColor(Color.decode("#08141e"));
+            g.fillRect(0, 0, 30, this.getHeight());
             for (int i = 0; i < blocksData.size() - this.startingPosition && i < this.itemsShown; i++){
-                if (i + this.startingPosition == this.cursorPosition){
-                    if (cursorFocus == 0){
-                        g.setColor(Color.decode("#997577"));
-                    }
-                    else {
-                        g.setColor(Color.decode("#4e495f"));
-                    }
-                    g.fillRect(0, i * 30, this.getWidth(), 30);
-                }
                 drawCenteredText(g, blocksData.get(i + this.startingPosition).name, this.defaultFont,
                         Color.decode("#c3a38a"), this.getWidth() / 2, 10 + i * 30);
-                g.setColor(Color.decode("#08141e"));
-                g.fillRect(0, i * 30, 30, 30);
                 g.setColor(Color.decode("#f6d6bd"));
                 if (blocksData.get(i + this.startingPosition).isSelected){
                     g.fillOval(10, i * 30 + 10, 10, 10);
@@ -97,11 +94,15 @@ public class CustomMenuScreen extends JPanel implements GameStage {
     }
 
     private class BlockViewMiniScreen extends JPanel{
-        private Font defaultFont = new Font(null, Font.PLAIN, 20);
-        BlockViewMiniScreen(int x, int y, int width, int height) {
+        int gridWidth, gridHeight;
+        Pair center;
+        BlockViewMiniScreen(int x, int y, int width, int height, int rows, int cols) {
             this.setBackground(Color.decode("#0f2a3f"));
             this.setFocusable(true);
             this.setBounds(x, y, width, height);
+            this.gridWidth = width / cols;
+            this.gridHeight = height / rows;
+            center = new Pair(cols / 2, rows / 2);
         }
         public void paintComponent(Graphics g){
             super.paintComponent(g);
@@ -109,7 +110,14 @@ public class CustomMenuScreen extends JPanel implements GameStage {
         }
 
         public void draw(Graphics g){
-
+            BlockData currentBlock = blocksData.get(blockMenuScreen.cursorPosition);
+            Pair offset = currentBlock.centerOffset;
+            g.setColor(Color.decode("#c3a38a"));
+            for (Pair gridIndex: currentBlock.blockIndices){
+                g.fillRect((gridIndex.x + center.x + offset.x) * gridWidth + 1,
+                        (gridIndex.y + center.y + offset.y) * gridHeight + 1,
+                        gridWidth - 2, gridHeight - 2);
+            }
         }
     }
 
@@ -128,7 +136,11 @@ public class CustomMenuScreen extends JPanel implements GameStage {
 
         private void setupOptions() {
             options = new ArrayList<>();
-            Collections.addAll(options, "Edit", "Delete", "New", "Start");
+            Collections.addAll(options, "Start", "Edit", "Delete", "New");
+        }
+
+        public String getCurrentOption() {
+            return this.options.get(this.cursorPosition);
         }
 
         public void cursorIncrement() {
@@ -146,20 +158,34 @@ public class CustomMenuScreen extends JPanel implements GameStage {
 
         public void draw(Graphics g){
             for (int i = 0; i < options.size(); i++){
-                if (i == this.cursorPosition){
-                    if (cursorFocus == 1) {
-                        drawCenteredText(g, options.get(i), defaultFont, Color.decode("#f6d6bd"),
-                                this.getWidth() / 2, 60 + i * 40);
+                Color textColor;
+                if (blocksData.get(blockMenuScreen.cursorPosition).isPrimary &&
+                        (options.get(i) == "Edit") || options.get(i) == "Delete"){
+                    if (i == this.cursorPosition){
+                        if (cursorFocus == 1) {
+                            textColor = Color.decode("#c3a38a");
+                        }
+                        else {
+                            textColor = Color.decode("#0f2a3f");
+                        }
                     }
                     else {
-                        drawCenteredText(g, options.get(i), defaultFont, Color.decode("#816271"),
-                                this.getWidth() / 2, 60 + i * 40);
+                        textColor = Color.decode("#08141e");
+                    }
+                }
+                else if (i == this.cursorPosition){
+                    if (cursorFocus == 1) {
+                        textColor = Color.decode("#f6d6bd");
+                    }
+                    else {
+                        textColor = Color.decode("#816271");
                     }
                 }
                 else {
-                    drawCenteredText(g, options.get(i), defaultFont, Color.decode("#4e495f"),
-                            this.getWidth() / 2, 60 + i * 40);
+                    textColor = Color.decode("#4e495f");
                 }
+                drawCenteredText(g, options.get(i), defaultFont, textColor,
+                        this.getWidth() / 2, 60 + i * 40);
             }
         }
     }
@@ -176,7 +202,7 @@ public class CustomMenuScreen extends JPanel implements GameStage {
         this.getBLockData();
         this.blockMenuScreen = new BlockListMiniScreen(50, 50, 250, 300);
         this.add(this.blockMenuScreen);
-        this.blockViewScreen = new BlockViewMiniScreen(350, 50, 100,100);
+        this.blockViewScreen = new BlockViewMiniScreen(350, 50, 100,100, 5, 5);
         this.add(this.blockViewScreen);
         this.menuMiniScreen = new MenuMiniScreen(50, 400, 400, 250);
         this.add(this.menuMiniScreen);
@@ -282,6 +308,11 @@ public class CustomMenuScreen extends JPanel implements GameStage {
                         this.blockMenuScreen.pickBlock();
                         break;
                     case 1:
+                        switch (this.menuMiniScreen.getCurrentOption()){
+                            case "New":
+                                mainGame.setDirectory("BlockBuilderScreen");
+                                break;
+                        }
                         break;
                 }
         }

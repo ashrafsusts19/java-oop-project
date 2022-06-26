@@ -155,6 +155,11 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
         CustomMenuScreen customMenuScreen = new CustomMenuScreen(this);
         gameStages.put("CustomMenuScreen", customMenuScreen);
         gamePanels.put("CustomMenuScreen", customMenuScreen);
+
+        dir.addChild("BlockBuilderScreen");
+        BlockBuilderScreen blockBuilderScreen = new BlockBuilderScreen(this);
+        gameStages.put("BlockBuilderScreen", blockBuilderScreen);
+        gamePanels.put("BlockBuilderScreen", blockBuilderScreen);
     }
 
     public void goPreviousDir(){
