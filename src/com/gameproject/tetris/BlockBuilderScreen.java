@@ -5,21 +5,26 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Collections;
 
 public class BlockBuilderScreen extends JPanel implements GameStage {
 
-    class BLockBuilder extends JPanel {
-        int gridWidth, gridHeight;
-        int margin;
+    class BLockBuilder extends JPanel implements MouseListener{
+        private int gridWidth, gridHeight;
+        private int margin;
+        private boolean isMouseIn;
         BLockBuilder (int x, int y, int width, int height){
+            this.addMouseListener(this);
             this.setBackground(Color.decode("#0f2a3f"));
             this.setFocusable(true);
             this.setBounds(x, y, width, height);
             this.gridWidth = this.getWidth() / cols;
             this.gridHeight = this.getHeight() / rows;
-            this.margin = ((this.gridHeight + this.gridWidth) / 2 )/ 20;
+            this.margin = 1;
+            this.isMouseIn = false;
         }
 
         public void paintComponent(Graphics g){
@@ -42,7 +47,54 @@ public class BlockBuilderScreen extends JPanel implements GameStage {
                     }
                 }
             }
+            if (this.getMousePosition() != null){
+                Point mousePosition = this.getMousePosition();
+                int col, row;
+                col = mousePosition.x / this.gridWidth;
+                row = mousePosition.y / this.gridHeight;
+                //System.out.println("x: " + mousePosition.x + " y: " + mousePosition.y);
+                g.setColor(Color.decode("#f6d6bd"));
+                g.drawRect(col * this.gridWidth, row * this.gridHeight, this.gridWidth - 1,
+                        this.gridHeight - 1);
+            }
         }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            int x, y;
+            x = e.getX();
+            y = e.getY();
+            int rowNo, colNo;
+            colNo = x / this.gridWidth;
+            rowNo = y / this.gridHeight;
+            if (rowNo >= rows || rowNo < 0 || colNo >= cols || colNo < 0){
+                return;
+            }
+            if (e.getButton() == MouseEvent.BUTTON1){
+                //If Left Button is Pressed
+                if (centerBlock.x != colNo || centerBlock.y != rowNo){
+                    blockMap[rowNo][colNo] = !blockMap[rowNo][colNo];
+                }
+            }
+            else if (e.getButton() == MouseEvent.BUTTON3){
+                //If Right Button is Pressed
+                blockMap[rowNo][colNo] = true;
+                centerBlock.x = colNo;
+                centerBlock.y = rowNo;
+            }
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {}
+
+        @Override
+        public void mouseReleased(MouseEvent e) {}
+
+        @Override
+        public void mouseEntered(MouseEvent e) {}
+
+        @Override
+        public void mouseExited(MouseEvent e) {}
     }
 
     class MenuMiniScreen extends JPanel{
@@ -109,13 +161,13 @@ public class BlockBuilderScreen extends JPanel implements GameStage {
 
         private boolean checkNameValidity(String name){
             if (name.length() > 9){
-                notifyError("Length Limit Exceeded");
+                displayError("Length Limit Exceeded");
                 return false;
             }
             for (int i = 0; i < name.length(); i++){
                 char c = name.charAt(i);
                 if ((c < '0' || c > '9') && (c < 'A' || c > 'Z') && (c < 'a' || c > 'z')){
-                    notifyError("Alphanumeric Only");
+                    displayError("Alphanumeric Only");
                     return false;
                 }
             }
@@ -167,7 +219,7 @@ public class BlockBuilderScreen extends JPanel implements GameStage {
         this.add(nameTextField);
     }
 
-    private void notifyError(String errorText){
+    private void displayError(String errorText){
         Font font = new Font(null, Font.BOLD, 15);
         JLabel errorlabel = new JLabel(errorText);
         errorlabel.setOpaque(true);
