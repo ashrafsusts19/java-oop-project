@@ -160,7 +160,11 @@ public class BlockBuilderScreen extends JPanel implements GameStage {
         }
 
         private boolean checkNameValidity(String name){
-            if (name.length() > 9){
+            if (name.length() == 0){
+                displayError("Name Can't be Empty");
+                return false;
+            }
+            else if (name.length() > 9){
                 displayError("Length Limit Exceeded");
                 return false;
             }
@@ -177,6 +181,9 @@ public class BlockBuilderScreen extends JPanel implements GameStage {
 
     GameFrame mainGame;
     boolean[][] blockMap;
+    boolean isNewBlock;
+    String previousName;
+    String[] fixedNames = {"I", "J", "L", "O", "S", "T", "Z"};
     Pair centerBlock;
     int rows = 5, cols = 5;
     BLockBuilder bLockBuilder;
@@ -198,11 +205,42 @@ public class BlockBuilderScreen extends JPanel implements GameStage {
         this.setFocusable(true);
     }
 
+    BlockBuilderScreen (GameFrame _mainGame, BlockData blockData) {
+        this.mainGame = _mainGame;
+        this.bLockBuilder = new BLockBuilder(50, 50, 400, 400);
+        this.add(this.bLockBuilder);
+        this.menuMiniScreen = new MenuMiniScreen(50, 500, 200, 150);
+        this.add(this.menuMiniScreen);
+        this.setupTextField();
+        this.initializeExistingBlock(blockData);
+        this.setPreferredSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT));
+        this.setLayout(null);
+        this.setBackground(Color.decode("#20394f"));
+        this.setFocusable(true);
+    }
+
     private void initializeNewBlock(){
+        this.isNewBlock = true;
+        this.previousName = null;
         this.blockName = "NewBlock";
         this.blockMap = new boolean[this.rows][this.cols];
         this.blockMap[this.rows / 2][this.cols / 2] = true;
         this.centerBlock = new Pair(this.cols / 2, this.rows / 2);
+        this.nameTextField.setText(this.blockName);
+    }
+
+    private void initializeExistingBlock(BlockData blockData){
+        this.isNewBlock = false;
+        this.previousName = blockData.name;
+        this.blockName = blockData.name;
+        this.blockMap = new boolean[this.rows][this.cols];
+        this.centerBlock = new Pair((this.cols / 2) + blockData.centerOffset.x,
+                (this.rows / 2) + blockData.centerOffset.y);
+        for (Pair blockIndex: blockData.blockIndices){
+            int y = (this.rows / 2) + blockData.centerOffset.y + blockIndex.y;
+            int x = (this.cols / 2) + blockData.centerOffset.x + blockIndex.x;
+            this.blockMap[y][x] = true;
+        }
         this.nameTextField.setText(this.blockName);
     }
 
@@ -240,6 +278,53 @@ public class BlockBuilderScreen extends JPanel implements GameStage {
         });
         timer.setRepeats(false);
         timer.start();
+    }
+
+    private void saveData(){
+        for (String fixedName: fixedNames){
+            if (this.blockName == fixedName){
+                this.displayError("Name not available!");
+                return;
+            }
+        }
+        ArrayList<String> saveDataBlocks = mainGame.saveDataBlocks;
+        int replaceIndex = -1;
+        for (int i = 0; i < saveDataBlocks.size(); i++){
+            if (saveDataBlocks.get(i).startsWith(this.blockName)){
+                if (this.isNewBlock || this.previousName != this.blockName){
+                    this.displayError("Name must be unique!");
+                    return;
+                }
+                else {
+                    replaceIndex = i;
+                }
+            }
+            else if (!this.isNewBlock && saveDataBlocks.get(i).startsWith(this.previousName)) {
+                replaceIndex = i;
+            }
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < this.rows; i++){
+            for (int j = 0; j < this.cols; j++) {
+                if (this.blockMap[i][j]){
+                    stringBuilder.append("1");
+                }
+                else {
+                    stringBuilder.append("0");
+                }
+            }
+        }
+        String encodedBlock = this.blockName + "-" + this.centerBlock.x + " " + this.centerBlock.y + "-" +
+                stringBuilder.toString();
+        if (replaceIndex != -1){
+            saveDataBlocks.set(replaceIndex, encodedBlock);
+        }
+        else {
+            saveDataBlocks.add(encodedBlock);
+        }
+        mainGame.saveBlockData();
+        this.previousName = this.blockName;
+        this.isNewBlock = false;
     }
 
     public void paintComponent(Graphics g){
@@ -283,8 +368,10 @@ public class BlockBuilderScreen extends JPanel implements GameStage {
                         this.nameTextField.requestFocus();
                         break;
                     case "Save":
+                        this.saveData();
                         break;
                     case "Exit":
+                        this.mainGame.goPreviousDir();
                         break;
                 }
                 break;

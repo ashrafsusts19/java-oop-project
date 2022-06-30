@@ -95,6 +95,7 @@ public class MainMenuScreen extends JPanel implements GameStage{
                         mainGame.setDirectory("SettingsScreen");
                         break;
                     case "Quit":
+                        System.exit(0);
                         break;
                 }
                 break;

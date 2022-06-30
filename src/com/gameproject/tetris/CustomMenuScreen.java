@@ -2,9 +2,12 @@ package com.gameproject.tetris;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.StringTokenizer;
 
 class BlockData {
     public String name;
@@ -50,12 +53,18 @@ public class CustomMenuScreen extends JPanel implements GameStage {
             if (this.cursorPosition >= this.startingPosition + this.itemsShown){
                 this.startingPosition = this.cursorPosition - this.itemsShown + 1;
             }
+            else if (this.cursorPosition == 0){
+                this.startingPosition = this.cursorPosition;
+            }
         }
 
         public void cursorDecrement() {
             this.cursorPosition = (this.cursorPosition - 1 + blocksData.size()) % blocksData.size();
             if (this.cursorPosition < this.startingPosition){
                 this.startingPosition = this.cursorPosition;
+            }
+            else if (this.cursorPosition == blocksData.size() - 1){
+                this.startingPosition = Integer.max(0, this.cursorPosition - this.itemsShown + 1);
             }
         }
 
@@ -160,7 +169,7 @@ public class CustomMenuScreen extends JPanel implements GameStage {
             for (int i = 0; i < options.size(); i++){
                 Color textColor;
                 if (blocksData.get(blockMenuScreen.cursorPosition).isPrimary &&
-                        (options.get(i) == "Edit") || options.get(i) == "Delete"){
+                        ((options.get(i) == "Edit") || options.get(i) == "Delete")){
                     if (i == this.cursorPosition){
                         if (cursorFocus == 1) {
                             textColor = Color.decode("#c3a38a");
@@ -196,13 +205,14 @@ public class CustomMenuScreen extends JPanel implements GameStage {
     BlockViewMiniScreen blockViewScreen;
     MenuMiniScreen menuMiniScreen;
     ArrayList<BlockData> blocksData;
+    int blockRows = 5, blockCols = 5;
     CustomMenuScreen(GameFrame _mainGame) {
         this.mainGame = _mainGame;
-        this.cursorFocus = 1;
+        this.cursorFocus = 0;
         this.getBLockData();
         this.blockMenuScreen = new BlockListMiniScreen(50, 50, 250, 300);
         this.add(this.blockMenuScreen);
-        this.blockViewScreen = new BlockViewMiniScreen(350, 50, 100,100, 5, 5);
+        this.blockViewScreen = new BlockViewMiniScreen(350, 50, 100,100, this.blockRows, this.blockCols);
         this.add(this.blockViewScreen);
         this.menuMiniScreen = new MenuMiniScreen(50, 400, 400, 250);
         this.add(this.menuMiniScreen);
@@ -210,6 +220,22 @@ public class CustomMenuScreen extends JPanel implements GameStage {
         this.setLayout(null);
         this.setBackground(Color.decode("#20394f"));
         this.setFocusable(true);
+    }
+
+    public void refresh() {
+        this.remove(this.blockMenuScreen);
+        this.remove(this.blockViewScreen);
+        this.remove(this.menuMiniScreen);
+        this.cursorFocus = 0;
+        this.getBLockData();
+        this.blockMenuScreen = new BlockListMiniScreen(50, 50, 250, 300);
+        this.add(this.blockMenuScreen);
+        this.blockViewScreen = new BlockViewMiniScreen(350, 50, 100,100, this.blockRows, this.blockCols);
+        this.add(this.blockViewScreen);
+        this.menuMiniScreen = new MenuMiniScreen(50, 400, 400, 250);
+        this.add(this.menuMiniScreen);
+        this.revalidate();
+        this.repaint();
     }
 
     public void getBLockData() {
@@ -246,6 +272,51 @@ public class CustomMenuScreen extends JPanel implements GameStage {
         for (int i = 0; i < blocksData.size(); i++){
             blocksData.get(i).isSelected = true;
         }
+        for (String encodedData: mainGame.saveDataBlocks){
+            StringTokenizer st = new StringTokenizer(encodedData, "-");
+            String name, sCenter, sBlockMap;
+            name = st.nextToken();
+            sCenter = st.nextToken();
+            sBlockMap = st.nextToken();
+
+            StringTokenizer st2 = new StringTokenizer(sCenter, " ");
+            int centerx, centery;
+            centerx = Integer.parseInt(st2.nextToken());
+            centery = Integer.parseInt(st2.nextToken());
+            Pair offset = new Pair(centerx - (this.blockCols / 2), centery - (this.blockRows / 2));
+            ArrayList<Pair> savedBlockIndices = new ArrayList<>();
+            for (int i = 0; i < this.blockRows; i++){
+                for (int j = 0; j < this.blockCols; j++){
+                    if (sBlockMap.charAt(i * this.blockCols + j) == '1'){
+                        savedBlockIndices.add(new Pair(j - centerx, i - centery));
+                    }
+                }
+            }
+            this.blocksData.add(new BlockData(name, savedBlockIndices, offset, false));
+        }
+    }
+
+    private void displayError(String errorText){
+        Font font = new Font(null, Font.BOLD, 15);
+        JLabel errorlabel = new JLabel(errorText);
+        errorlabel.setOpaque(true);
+        errorlabel.setForeground(Color.decode("#f6d6bd"));
+        errorlabel.setBackground(Color.decode("#0f2a3f"));
+        errorlabel.setHorizontalAlignment(SwingConstants.CENTER);
+        errorlabel.setFont(font);
+        errorlabel.setBounds(350, 200, 100, 30);
+        this.add(errorlabel);
+        JPanel currentPanel = this;
+        Timer timer = new Timer(2000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                currentPanel.remove(errorlabel);
+                currentPanel.revalidate();
+                currentPanel.repaint();
+            }
+        });
+        timer.setRepeats(false);
+        timer.start();
     }
 
     public void drawCenteredText(Graphics g, String text, Font font, Color color, int x, int y){
@@ -309,7 +380,51 @@ public class CustomMenuScreen extends JPanel implements GameStage {
                         break;
                     case 1:
                         switch (this.menuMiniScreen.getCurrentOption()){
+                            case "Start":
+                                ArrayList<BlockData> selectedBLocks = new ArrayList<>();
+                                for (BlockData blockData: this.blocksData){
+                                    if (blockData.isSelected){
+                                        selectedBLocks.add(blockData);
+                                    }
+                                }
+                                if (selectedBLocks.size() == 0){
+                                    this.displayError("Must Select at least one Block");
+                                }
+                                else {
+                                    mainGame.initializeCustorGame(selectedBLocks);
+                                    mainGame.setDirectory("GameScreen");
+                                }
+                                break;
+                            case "Edit":
+                                {
+                                    BlockData activeBlock = this.blocksData.get(blockMenuScreen.cursorPosition);
+                                    if (!activeBlock.isPrimary) {
+                                        mainGame.initializeEditor(activeBlock);
+                                        mainGame.setDirectory("BlockBuilderScreen");
+                                    }
+                                }
+                                break;
+                            case "Delete":
+                                {
+                                    BlockData activeBlock = this.blocksData.get(this.blockMenuScreen.cursorPosition);
+                                    if (!activeBlock.isPrimary) {
+                                        ArrayList<String> saveData = mainGame.saveDataBlocks;
+                                        for (int i = 0; i < saveData.size(); i++){
+                                            if (saveData.get(i).startsWith(activeBlock.name)){
+                                                saveData.remove(i);
+                                                break;
+                                            }
+                                        }
+                                        this.blocksData.remove(this.blockMenuScreen.cursorPosition);
+                                        if (this.blockMenuScreen.cursorPosition == this.blocksData.size()){
+                                            this.blockMenuScreen.cursorPosition--;
+                                        }
+                                        mainGame.saveBlockData();
+                                    }
+                                }
+                                break;
                             case "New":
+                                mainGame.initializeEditor(null);
                                 mainGame.setDirectory("BlockBuilderScreen");
                                 break;
                         }

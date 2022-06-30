@@ -10,6 +10,7 @@ public class TetrisBlock {
     public ArrayList<Pair> blockIndices;
     public int blockStates;
     public int maxLen = 0;
+    public Pair centerOffset;
 
     TetrisBlock(ArrayList<Pair> _blockIndices){
         blockIndices = (ArrayList) _blockIndices.clone();
@@ -17,6 +18,16 @@ public class TetrisBlock {
         for (Pair blockIndex: blockIndices){
             maxLen = max(maxLen, max(abs(blockIndex.y), abs(blockIndex.x)));
         }
+        centerOffset = new Pair(0, 0);
+    }
+
+    TetrisBlock(ArrayList<Pair> _blockIndices, Pair _centerOffset){
+        blockIndices = (ArrayList) _blockIndices.clone();
+        findStates();
+        for (Pair blockIndex: blockIndices){
+            maxLen = max(maxLen, max(abs(blockIndex.y), abs(blockIndex.x)));
+        }
+        centerOffset = _centerOffset;
     }
 
     private void sortPairs(ArrayList<Pair> pairs){

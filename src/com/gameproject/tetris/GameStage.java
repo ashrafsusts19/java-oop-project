@@ -7,4 +7,7 @@ public interface GameStage {
 
     public void gameLoop();
     public void keyPressed(String key);
+    default public void refresh(){
+
+    }
 }

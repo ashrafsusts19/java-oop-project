@@ -19,18 +19,20 @@ public class GameScreen extends JPanel implements GameStage{
         int maxLen;
         int currState = 1;
         int xLeft, xRight, yTop, yBot;
+        Pair centerOffset;
 
-        IngameBlock(TetrisBlock blockData){
-            blockIndices = new ArrayList<>();
+        IngameBlock(TetrisBlock tetrisBlock){
+            this.blockIndices = new ArrayList<>();
             int miny = 99999;
-            for (Pair blockIndex: blockData.blockIndices){
+            for (Pair blockIndex: tetrisBlock.blockIndices){
                 blockIndices.add(new Pair(blockIndex.x, blockIndex.y));
                 miny = min(miny, blockIndex.y);
             }
             x = gridMap[0].length / 2 - 1;
             y = -miny;
-            blockStates = blockData.blockStates;
-            maxLen = blockData.maxLen;
+            this.blockStates = tetrisBlock.blockStates;
+            this.maxLen = tetrisBlock.maxLen;
+            this.centerOffset = tetrisBlock.centerOffset;
             this.defineShape();
         }
 
@@ -206,8 +208,10 @@ public class GameScreen extends JPanel implements GameStage{
 
         public void draw(Graphics g){
             g.setColor(Color.decode("#c3a38a"));
+            Pair centerOffset = blockQueue[1].centerOffset;
             for (Pair index: blockQueue[1].blockIndices){
-                g.fillRect((centerX + index.x) * GRIDW + 1, (centerY + index.y) * GRIDH + 1,
+                g.fillRect((centerX + index.x + centerOffset.x) * GRIDW + 1,
+                        (centerY + index.y + centerOffset.y) * GRIDH + 1,
                         GRIDW - 2, GRIDH - 2);
             }
         }
@@ -230,7 +234,7 @@ public class GameScreen extends JPanel implements GameStage{
 
         public void draw(Graphics g){
             drawCenteredText(g, "Score: " + score, defaultFont, Color.decode("#c3a38a"),
-                    centerX, centerY + defaultFont.getSize());
+                    centerX, centerY);
         }
 
     }
@@ -264,6 +268,22 @@ public class GameScreen extends JPanel implements GameStage{
         this.startGame();
     }
 
+    GameScreen(GameFrame _mainGame, ArrayList<BlockData> bLocksData) {
+        mainGame = _mainGame;
+        this.setLayout(null);
+        this.setSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT));
+        this.gmScreen = new GameMiniScreen(50 + (400 - COLS * 20) / 2, 50);
+        this.add(this.gmScreen);
+        this.nextScreen = new NextBlockMiniScreen(50, 500, 5, 5);
+        this.add(this.nextScreen);
+        this.statsScreen = new StatsMiniScreen(300, 500, 150, 100);
+        this.add(this.statsScreen);
+        this.setBackground(Color.decode("#20394f"));
+        this.setFocusable(true);
+        this.setupBLocks(bLocksData);
+        this.startGame();
+    }
+
     public void startGame(){
         score = 0;
         timer = 0;
@@ -272,6 +292,13 @@ public class GameScreen extends JPanel implements GameStage{
         Random rand = new Random();
         blockQueue[0] = new IngameBlock(chosenBlocks.get(rand.nextInt(chosenBlocks.size())));
         blockQueue[1] = new IngameBlock(chosenBlocks.get(rand.nextInt(chosenBlocks.size())));
+    }
+
+    private void setupBLocks(ArrayList<BlockData> blocksData){
+        chosenBlocks = new ArrayList<>();
+        for (BlockData blockData: blocksData){
+            chosenBlocks.add(new TetrisBlock(blockData.blockIndices, blockData.centerOffset));
+        }
     }
 
     private void setupDefaultBLocks(){
