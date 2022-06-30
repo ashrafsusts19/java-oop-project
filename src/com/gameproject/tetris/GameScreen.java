@@ -398,7 +398,7 @@ public class GameScreen extends JPanel implements GameStage{
         //g.drawRect(49, 499, 102, 102);
         if (isGameover){
             this.drawCenteredText(g, "Game Over, press Space to restart", defaultFont,
-                    Color.decode("#c2c2d1"), SCREEN_WIDTH / 2, 470 + defaultFont.getSize());
+                    Color.decode("#c2c2d1"), SCREEN_WIDTH / 2, 470);
         }
 
     }
