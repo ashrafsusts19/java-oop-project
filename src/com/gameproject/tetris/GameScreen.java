@@ -254,6 +254,9 @@ public class GameScreen extends JPanel implements GameStage{
 
     GameScreen(GameFrame _mainGame) {
         mainGame = _mainGame;
+        if (mainGame.GAMESIZEOPTION == 1){
+            this.COLS = 20;
+        }
         this.setLayout(null);
         this.setSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT));
         this.gmScreen = new GameMiniScreen(50 + (400 - COLS * 20) / 2, 50);
@@ -270,6 +273,9 @@ public class GameScreen extends JPanel implements GameStage{
 
     GameScreen(GameFrame _mainGame, ArrayList<BlockData> bLocksData) {
         mainGame = _mainGame;
+        if (mainGame.GAMESIZEOPTION == 1){
+            this.COLS = 20;
+        }
         this.setLayout(null);
         this.setSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT));
         this.gmScreen = new GameMiniScreen(50 + (400 - COLS * 20) / 2, 50);
