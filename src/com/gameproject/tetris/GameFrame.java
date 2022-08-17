@@ -107,6 +107,7 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
     ArrayList<String> saveDataBlocks;
     File saveFileScore;
     ArrayList<Integer> saveDataScore;
+    int GAMESIZEOPTION;
 
     GameFrame(){
         this.loadSaveFiles();
@@ -125,6 +126,7 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
         this.running = true;
         this.timer = new Timer(DELAY, this);
         this.timer.start();
+        this.GAMESIZEOPTION = 0;
     }
 
     private void loadSaveFiles(){
@@ -211,6 +213,19 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void blockReset(){
+        this.saveDataBlocks = new ArrayList<>();
+        this.saveBlockData();
+    }
+
+    public void scoreReset(){
+        for (int i =0; i < this.saveDataScore.size(); i++){
+            this.saveDataScore.set(i, 0);
+        }
+
+        this.saveScoreData();
     }
 
     public void updateScore(int score){
