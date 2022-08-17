@@ -347,7 +347,7 @@ public class GameScreen extends JPanel implements GameStage{
     }
 
     public void callGameOver() {
-
+        mainGame.updateScore(this.score);
     }
 
     public void updateScore()

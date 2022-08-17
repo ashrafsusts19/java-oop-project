@@ -8,6 +8,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 
@@ -104,6 +105,8 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
     DirNode rootDir, currDir;
     File saveFileBlocks;
     ArrayList<String> saveDataBlocks;
+    File saveFileScore;
+    ArrayList<Integer> saveDataScore;
 
     GameFrame(){
         this.loadSaveFiles();
@@ -146,6 +149,43 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
                 e.printStackTrace();
             }
         }
+        this.saveFileScore = new File("ScoreRecords.txt");
+        this.saveDataScore = new ArrayList<>();
+        if (!this.saveFileScore.isFile()){
+            try {
+                this.saveFileScore.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            for (int i = 0; i < 10; i++){
+                saveDataScore.add(0);
+            }
+            this.saveScoreData();
+        }
+        else {
+            try {
+                BufferedReader saveFileReader = new BufferedReader(new FileReader(this.saveFileScore));
+                String line;
+                while((line = saveFileReader.readLine()) != null){
+                    this.saveDataScore.add(Integer.parseInt(line.strip()));
+                    if (saveDataScore.size() >= 10){
+                        break;
+                    }
+                }
+                saveFileReader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (NumberFormatException e){
+                saveDataScore = new ArrayList<>();
+                for (int i = 0; i < 10; i++){
+                    saveDataScore.add(0);
+                }
+            }
+            while (saveDataScore.size() < 10){
+                saveDataScore.add(0);
+            }
+        }
+        Collections.sort(saveDataScore, Collections.reverseOrder());
     }
 
     public void saveBlockData() {
@@ -158,6 +198,32 @@ public class GameFrame extends JFrame implements GameStage, ActionListener {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void saveScoreData() {
+        try {
+            BufferedWriter saveFileWriter = new BufferedWriter(new FileWriter(this.saveFileScore));
+            for (int i =0; i < saveDataScore.size(); i++){
+                String line = saveDataScore.get(i) + "";
+                saveFileWriter.write(line + System.lineSeparator());
+            }
+            saveFileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateScore(int score){
+        for (int i = 0; i < saveDataScore.size(); i++){
+            if (saveDataScore.get(i) < score){
+                for (int j = saveDataScore.size() - 1; j > i; j--){
+                    saveDataScore.set(j, saveDataScore.get(j - 1));
+                }
+                saveDataScore.set(i, score);
+                break;
+            }
+        }
+        this.saveScoreData();
     }
 
     private void createDirectories(){
